@@ -12,6 +12,9 @@
     "php": ">= 7.2",
     "nette/forms": "^3.0"
   },
+  "conflict": {
+    "contributte/forms-multiplier": "*"
+  },
   "require-dev": {
     "ninjify/qa": "^0.8.0",
     "ninjify/nunjuck": "^0.2.0",
