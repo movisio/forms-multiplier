@@ -28,9 +28,6 @@ final class ComponentResolver
 	/** @var mixed[] */
 	private $purgedHttpData;
 
-	/** @var mixed[] */
-	private $defaults;
-
 	/** @var int */
 	private $minCopies;
 
@@ -39,21 +36,19 @@ final class ComponentResolver
 
 	/**
 	 * @param mixed[] $httpData
-	 * @param mixed[] $defaults
 	 */
-	public function __construct(array $httpData, array $defaults, ?int $maxCopies, int $minCopies)
+	public function __construct(array $httpData, ?int $maxCopies, int $minCopies)
 	{
 		$this->httpData = $httpData;
 		$this->maxCopies = $maxCopies;
-		$this->defaults = $defaults;
 		$this->minCopies = $minCopies;
 
 		foreach ($httpData as $index => $_) {
-			if (Strings::startsWith((string) $index, Multiplier::SUBMIT_CREATE_NAME)) {
+			if (Strings::startsWith((string)$index, Multiplier::SUBMIT_CREATE_NAME)) {
 				$this->createAction = true;
 				$num = substr($index, 18);
 				if ($num) {
-					$this->createNum = (int) $num;
+					$this->createNum = (int)$num;
 				}
 
 				return;
@@ -70,7 +65,7 @@ final class ComponentResolver
 		}
 	}
 
-	public function getCreateNum(): int
+	public function getCreateNum() : int
 	{
 		return $this->createNum;
 	}
@@ -78,7 +73,7 @@ final class ComponentResolver
 	/**
 	 * @return mixed[]
 	 */
-	public function getDefaults(): array
+	public function getDefaults() : array
 	{
 		return array_slice($this->defaults, 0, $this->maxCopies, true);
 	}
@@ -86,7 +81,7 @@ final class ComponentResolver
 	/**
 	 * @return mixed[]
 	 */
-	public function getValues(): array
+	public function getValues() : array
 	{
 		return array_slice($this->getPurgedHttpData(), 0, $this->maxCopies, true);
 	}
@@ -94,7 +89,7 @@ final class ComponentResolver
 	/**
 	 * @return mixed[]
 	 */
-	public function getPurgedHttpData(): array
+	public function getPurgedHttpData() : array
 	{
 		if ($this->purgedHttpData === null) {
 			$httpData = $this->httpData;
@@ -121,12 +116,12 @@ final class ComponentResolver
 		return $this->purgedHttpData;
 	}
 
-	public function isCreateAction(): bool
+	public function isCreateAction() : bool
 	{
 		return $this->createAction;
 	}
 
-	public function isRemoveAction(): bool
+	public function isRemoveAction() : bool
 	{
 		return $this->removeAction;
 	}
@@ -139,7 +134,7 @@ final class ComponentResolver
 		return $this->removeId;
 	}
 
-	public function reachedMinLimit(): bool
+	public function reachedMinLimit() : bool
 	{
 		return $this->reached;
 	}
