@@ -237,13 +237,13 @@ class Multiplier extends Container
 		return $container;
 	}
 
-	private function createComponents(bool $foceValues = false) : void
+	private function createComponents(bool $forceValues = false) : void
 	{
 		$containers = [];
 		$containerDefaults = $this->createContainer()->getValues('array');
 
 		// Components from httpData
-		if ($this->isFormSubmitted() && !$foceValues) {
+		if ($this->isFormSubmitted() && !$forceValues) {
 			foreach ($this->resolver->getValues() as $number => $_) {
 				$containers[] = $container = $this->addCopy($number);
 
