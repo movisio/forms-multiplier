@@ -85,7 +85,7 @@ class Multiplier extends Container
 		$this->minCopies = $this->copyNumber = $copyNumber;
 		$this->maxCopies = $maxCopies;
 
-		$this->monitor(Form::class, function (Form $form) : void {
+		$this->monitor(Form::class, function (Form $form): void {
 			$this->form = $form;
 
 			if ($this->getCurrentGroup() === null) {
@@ -109,7 +109,7 @@ class Multiplier extends Container
 		$this->monitor(self::class, [$this, 'whenAttached']);
 	}
 
-	public function getForm(bool $throw = true) : ?Form
+	public function getForm(bool $throw = true): ?Form
 	{
 		if ($this->form) {
 			return $this->form;
@@ -118,7 +118,7 @@ class Multiplier extends Container
 		return parent::getForm($throw);
 	}
 
-	protected function whenAttached() : void
+	protected function whenAttached(): void
 	{
 		if ($this->attachedCalled) {
 			return;
@@ -130,53 +130,53 @@ class Multiplier extends Container
 		$this->attachedCalled = true;
 	}
 
-	public function setResetKeys(bool $reset = true) : self
+	public function setResetKeys(bool $reset = true): self
 	{
 		$this->resetKeys = $reset;
 
 		return $this;
 	}
 
-	public function setMinCopies(int $minCopies) : self
+	public function setMinCopies(int $minCopies): self
 	{
 		$this->minCopies = $minCopies;
 
 		return $this;
 	}
 
-	public function setFactory(callable $factory) : self
+	public function setFactory(callable $factory): self
 	{
 		$this->factory = $factory;
 
 		return $this;
 	}
 
-	public function getMaxCopies() : ?int
+	public function getMaxCopies(): ?int
 	{
 		return $this->maxCopies;
 	}
 
-	public function getMinCopies() : ?int
+	public function getMinCopies(): ?int
 	{
 		return $this->minCopies;
 	}
 
-	public function getCopyNumber() : int
+	public function getCopyNumber(): int
 	{
 		return $this->copyNumber;
 	}
 
-	public function addRemoveButton(?string $caption = null) : RemoveButton
+	public function addRemoveButton(?string $caption = null): RemoveButton
 	{
 		return $this->removeButton = new RemoveButton($caption);
 	}
 
-	public function addCreateButton(?string $caption = null, int $copyCount = 1) : CreateButton
+	public function addCreateButton(?string $caption = null, int $copyCount = 1): CreateButton
 	{
 		return $this->createButtons[$copyCount] = new CreateButton($caption, $copyCount);
 	}
 
-	protected function onCreateEvent() : void
+	protected function onCreateEvent(): void
 	{
 		foreach ($this->onCreate as $callback) {
 			foreach ($this->getContainers() as $container) {
@@ -185,14 +185,14 @@ class Multiplier extends Container
 		}
 	}
 
-	protected function onRemoveEvent() : void
+	protected function onRemoveEvent(): void
 	{
 		foreach ($this->onRemove as $callback) {
 			$callback($this);
 		}
 	}
 
-	protected function isValidMaxCopies() : bool
+	protected function isValidMaxCopies(): bool
 	{
 		return $this->maxCopies === null || $this->totalCopies < $this->maxCopies;
 	}
@@ -200,7 +200,7 @@ class Multiplier extends Container
 	/**
 	 * @param Control[]|null $controls
 	 */
-	public function validate(?array $controls = null) : void
+	public function validate(?array $controls = null): void
 	{
 		/** @var Control[] $controls */
 		$controls = $controls ?? iterator_to_array($this->getComponents());
@@ -250,7 +250,7 @@ class Multiplier extends Container
 		$containerDefaults = $this->createContainer()->getValues('array');
 
 		// Components from httpData
-		if ($this->isFormSubmitted()) && !$foceValues) {
+		if ($this->isFormSubmitted() && !$foceValues) {
 			foreach ($this->resolver->getValues() as $number => $_) {
 				$containers[] = $container = $this->addCopy($number);
 
@@ -261,7 +261,7 @@ class Multiplier extends Container
 			}
 		} else { // Components from default values
 			foreach ($this->resolver->getValues() as $number => $values) {
-				$containers[] = $this->addCopy($number, $values);
+				$containers[] = $container = $this->addCopy($number, $values);
 				$container->setValues($values);
 			}
 		}
@@ -298,7 +298,7 @@ class Multiplier extends Container
 		}
 	}
 
-	public function createCopies(bool $forceValues = false) : void
+	public function createCopies(bool $forceValues = false): void
 	{
 		if ($this->created === true) {
 			return;
@@ -332,21 +332,21 @@ class Multiplier extends Container
 		$this->onCreateEvent();
 	}
 
-	private function detachCreateButtons() : void
+	private function detachCreateButtons(): void
 	{
 		foreach ($this->createButtons as $button) {
 			$this->removeComponentProperly($this->getComponent($button->getComponentName()));
 		}
 	}
 
-	private function attachCreateButtons() : void
+	private function attachCreateButtons(): void
 	{
 		foreach ($this->createButtons as $button) {
 			$this->addComponent($button->create($this), $button->getComponentName());
 		}
 	}
 
-	private function detachRemoveButton(Container $container) : void
+	private function detachRemoveButton(Container $container): void
 	{
 		$button = $container->getComponent(self::SUBMIT_REMOVE_NAME);
 		if ($this->getCurrentGroup() !== null) {
@@ -356,7 +356,7 @@ class Multiplier extends Container
 		$container->removeComponent($button);
 	}
 
-	private function attachRemoveButton(Container $container) : void
+	private function attachRemoveButton(Container $container): void
 	{
 		if (!$this->removeButton) {
 			return;
@@ -365,12 +365,12 @@ class Multiplier extends Container
 		$container->addComponent($this->removeButton->create($this), self::SUBMIT_REMOVE_NAME);
 	}
 
-	protected function isFormSubmitted() : bool
+	protected function isFormSubmitted(): bool
 	{
 		return $this->getForm() !== null && $this->getForm()->isAnchored() && $this->getForm()->isSubmitted();
 	}
 
-	protected function loadHttpData() : void
+	protected function loadHttpData(): void
 	{
 		if ($this->form !== null && $this->isFormSubmitted()) {
 			$httpData = Arrays::get($this->form->getHttpData(), $this->getHtmlName(), []);
@@ -378,17 +378,17 @@ class Multiplier extends Container
 		}
 	}
 
-	protected function createNumber() : int
+	protected function createNumber(): int
 	{
 		$count = iterator_count($this->getComponents(false, Form::class));
-		while ($this->getComponent((string)$count, false)) {
+		while ($this->getComponent((string) $count, false)) {
 			$count++;
 		}
 
 		return $count;
 	}
 
-	protected function fillContainer(Container $container) : void
+	protected function fillContainer(Container $container): void
 	{
 		call_user_func($this->factory, $container, $this->getForm());
 	}
@@ -396,12 +396,12 @@ class Multiplier extends Container
 	/**
 	 * @return string[]
 	 */
-	protected function getHtmlName() : array
+	protected function getHtmlName(): array
 	{
 		return explode('-', $this->lookupPath(Form::class) ?? '');
 	}
 
-	protected function createContainer() : Container
+	protected function createContainer(): Container
 	{
 		$control = new Container();
 		$control->currentGroup = $this->currentGroup;
@@ -413,7 +413,7 @@ class Multiplier extends Container
 	/**
 	 * @return Submitter[]
 	 */
-	public function getCreateButtons() : array
+	public function getCreateButtons(): array
 	{
 		if ($this->maxCopies !== null && $this->totalCopies >= $this->maxCopies) {
 			return [];
@@ -430,7 +430,7 @@ class Multiplier extends Container
 	/**
 	 * Return name of first submit button
 	 */
-	protected function getFirstSubmit() : ?string
+	protected function getFirstSubmit(): ?string
 	{
 		$submits = iterator_to_array($this->getComponents(false, SubmitButton::class));
 		if ($submits) {
@@ -440,12 +440,12 @@ class Multiplier extends Container
 		return null;
 	}
 
-	protected function attachContainer(Container $container, ?string $name) : void
+	protected function attachContainer(Container $container, ?string $name): void
 	{
 		$this->addComponent($container, $name, $this->getFirstSubmit());
 	}
 
-	protected function removeComponentProperly(IComponent $component) : void
+	protected function removeComponentProperly(IComponent $component): void
 	{
 		if ($this->getCurrentGroup() !== null && $component instanceof Control) {
 			$this->getCurrentGroup()->remove($component);
@@ -457,7 +457,7 @@ class Multiplier extends Container
 	/**
 	 * @internal
 	 */
-	public function resetFormEvents() : void
+	public function resetFormEvents(): void
 	{
 		if ($this->form === null) {
 			return;
@@ -489,7 +489,7 @@ class Multiplier extends Container
 	/**
 	 * @return Iterator|Control[]
 	 */
-	public function getControls() : Iterator
+	public function getControls(): Iterator
 	{
 		$this->createCopies();
 
@@ -499,7 +499,7 @@ class Multiplier extends Container
 	/**
 	 * @return Iterator<int|string,Container>
 	 */
-	public function getContainers() : Iterator
+	public function getContainers(): Iterator
 	{
 		$this->createCopies();
 
@@ -511,7 +511,7 @@ class Multiplier extends Container
 	/**
 	 * @param mixed[]|object $values
 	 */
-	public function setValues($values, bool $erase = false) : self
+	public function setValues($values, bool $erase = false): self
 	{
 		if ($values instanceof Traversable) {
 			$values = iterator_to_array($values);
@@ -537,7 +537,7 @@ class Multiplier extends Container
 		return $this;
 	}
 
-	public static function register(string $name = 'addMultiplier') : void
+	public static function register(string $name = 'addMultiplier'): void
 	{
 		Container::extensionMethod(
 			$name,
