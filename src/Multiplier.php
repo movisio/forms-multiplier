@@ -306,7 +306,7 @@ class Multiplier extends Container
 
 		$this->created = true;
 
-		if ($this->resolver) {
+		if (!isset($this->resolver)) {
 			$this->resolver = new ComponentResolver($this->values, $this->maxCopies, $this->minCopies);
 		}
 
