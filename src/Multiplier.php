@@ -77,7 +77,7 @@ class Multiplier extends Container
 	protected $noValidate = [];
 
 	/** @var ComponentResolver|null */
-	protected $resolver = null;
+	protected $resolver;
 
 	public function __construct(callable $factory, int $copyNumber = 1, ?int $maxCopies = null)
 	{
@@ -306,7 +306,7 @@ class Multiplier extends Container
 
 		$this->created = true;
 
-		if (!isset($this->resolver)) {
+		if ($this->resolver) {
 			$this->resolver = new ComponentResolver($this->values, $this->maxCopies, $this->minCopies);
 		}
 
