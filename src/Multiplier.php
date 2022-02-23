@@ -76,8 +76,8 @@ class Multiplier extends Container
 	/** @var Container[] */
 	protected $noValidate = [];
 
-	/** @var ComponentResolver */
-	protected $resolver;
+	/** @var ComponentResolver|null */
+	protected $resolver = null;
 
 	public function __construct(callable $factory, int $copyNumber = 1, ?int $maxCopies = null)
 	{
@@ -255,7 +255,7 @@ class Multiplier extends Container
 				$containers[] = $container = $this->addCopy($number);
 
 				/** @var BaseControl $control */
-				foreach ($container->getComponents(false, IControl::class) as $control) {
+				foreach ($container->getComponents(false, Control::class) as $control) {
 					$control->loadHttpData();
 				}
 			}
@@ -374,7 +374,7 @@ class Multiplier extends Container
 	{
 		if ($this->form !== null && $this->isFormSubmitted()) {
 			$httpData = Arrays::get($this->form->getHttpData(), $this->getHtmlName(), []);
-			$this->resolver = new ComponentResolver($httpData, $this->maxCopies, $this->minCopies);
+			$this->resolver = new ComponentResolver($httpData ?? [], $this->maxCopies, $this->minCopies);
 		}
 	}
 
