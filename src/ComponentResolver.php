@@ -75,7 +75,7 @@ final class ComponentResolver
 	 */
 	public function getDefaults(): array
 	{
-		return array_slice($this->defaults, 0, $this->maxCopies, true);
+		return array_slice([], 0, $this->maxCopies, true);
 	}
 
 	/**
