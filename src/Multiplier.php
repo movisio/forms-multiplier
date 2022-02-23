@@ -7,12 +7,13 @@ use Contributte\FormMultiplier\Buttons\RemoveButton;
 use Iterator;
 use Nette\ComponentModel\IComponent;
 use Nette\Forms\Container;
+use Nette\Forms\Control;
 use Nette\Forms\Controls\BaseControl;
 use Nette\Forms\Controls\SubmitButton;
 use Nette\Forms\Form;
-use Nette\Forms\IControl;
 use Nette\Utils\ArrayHash;
 use Nette\Utils\Arrays;
+use Traversable;
 
 class Multiplier extends Container
 {
@@ -21,7 +22,7 @@ class Multiplier extends Container
 
 	public const SUBMIT_REMOVE_NAME = 'multiplier_remover';
 
-	/** @var Form */
+	/** @var Form|null */
 	private $form;
 
 	/** @var bool */
@@ -51,7 +52,7 @@ class Multiplier extends Container
 	/** @var RemoveButton|null */
 	protected $removeButton;
 
-	/** @var int */
+	/** @var int|null */
 	protected $maxCopies = null;
 
 	/** @var int */
@@ -84,28 +85,27 @@ class Multiplier extends Container
 		$this->minCopies = $this->copyNumber = $copyNumber;
 		$this->maxCopies = $maxCopies;
 
-		$this->monitor(
-			Form::class,
-			function (Form $form) : void {
-				$this->form = $form;
+		$this->monitor(Form::class, function (Form $form) : void {
+			$this->form = $form;
 
-				if ($this->getCurrentGroup() === null) {
-					$this->setCurrentGroup($form->getCurrentGroup());
-				}
-				if ($form instanceof \Nette\Application\UI\Form) {
-					if ($form->isAnchored()) {
-						$this->whenAttached();
-					} else {
-						$form->onAnchor[] = function () : void {
-							$this->whenAttached();
-						};
-					}
-				}
-				$form->onRender[] = function () : void {
-					$this->whenAttached();
-				};
+			if ($this->getCurrentGroup() === null) {
+				$this->setCurrentGroup($form->getCurrentGroup());
 			}
-		);
+
+			if ($form instanceof \Nette\Application\UI\Form) {
+				if ($form->isAnchored()) {
+					$this->whenAttached();
+				} else {
+					$form->onAnchor[] = function (): void {
+						$this->whenAttached();
+					};
+				}
+			}
+
+			$form->onRender[] = function (): void {
+				$this->whenAttached();
+			};
+		});
 		$this->monitor(self::class, [$this, 'whenAttached']);
 	}
 
@@ -123,6 +123,7 @@ class Multiplier extends Container
 		if ($this->attachedCalled) {
 			return;
 		}
+
 		$this->loadHttpData();
 		$this->createCopies();
 
@@ -197,10 +198,11 @@ class Multiplier extends Container
 	}
 
 	/**
-	 * @param IControl[]|null $controls
+	 * @param Control[]|null $controls
 	 */
 	public function validate(?array $controls = null) : void
 	{
+		/** @var Control[] $controls */
 		$controls = $controls ?? iterator_to_array($this->getComponents());
 
 		foreach ($controls as $index => $control) {
@@ -217,19 +219,24 @@ class Multiplier extends Container
 	/**
 	 * @param mixed[]|object $defaults
 	 */
-	public function addCopy(?int $number = null, $defaults = []) : ?Container
+	public function addCopy(?int $number = null, $defaults = []): Container
 	{
 		if (!is_numeric($number)) {
 			$number = $this->createNumber();
-		} elseif ($component = parent::getComponent((string)$number, false)) {
-			return $component;
+		} else {
+			/** @var Container|null $component */
+			$component = $this->getComponent((string) $number, false);
+			if ($component !== null) {
+				return $component;
+			}
 		}
 
 		$container = $this->createContainer();
 		if ($defaults) {
 			$container->setDefaults($defaults, $this->erase);
 		}
-		$this->attachContainer($container, (string)$number);
+
+		$this->attachContainer($container, (string) $number);
 		$this->attachRemoveButton($container);
 
 		$this->totalCopies++;
@@ -237,13 +244,13 @@ class Multiplier extends Container
 		return $container;
 	}
 
-	private function createComponents(bool $forceValues = false) : void
+	private function createComponents(bool $foceValues = false): void
 	{
 		$containers = [];
 		$containerDefaults = $this->createContainer()->getValues('array');
 
 		// Components from httpData
-		if ($this->isFormSubmitted() && !$forceValues) {
+		if ($this->isFormSubmitted()) && !$foceValues) {
 			foreach ($this->resolver->getValues() as $number => $_) {
 				$containers[] = $container = $this->addCopy($number);
 
@@ -254,8 +261,7 @@ class Multiplier extends Container
 			}
 		} else { // Components from default values
 			foreach ($this->resolver->getValues() as $number => $values) {
-				$containers[] = $container = $this->addCopy($number);
-				$container->setValues($containerDefaults);
+				$containers[] = $this->addCopy($number, $values);
 				$container->setValues($values);
 			}
 		}
@@ -276,7 +282,7 @@ class Multiplier extends Container
 		}
 
 		// New containers, if create button hitted
-		if ($this->resolver->isCreateAction() && $this->form->isValid()) {
+		if ($this->form !== null && $this->resolver->isCreateAction() && $this->form->isValid()) {
 			$count = $this->resolver->getCreateNum();
 			while ($count > 0 && $this->isValidMaxCopies()) {
 				$this->noValidate[] = $containers[] = $container = $this->addCopy();
@@ -297,6 +303,7 @@ class Multiplier extends Container
 		if ($this->created === true) {
 			return;
 		}
+
 		$this->created = true;
 
 		if (!isset($this->resolver)) {
@@ -311,10 +318,10 @@ class Multiplier extends Container
 			$this->attachCreateButtons();
 		}
 
-		if ($this->resolver->isRemoveAction() &&
-			$this->totalCopies >= $this->minCopies &&
-			!$this->resolver->reachedMinLimit()) {
-			$this->form->setSubmittedBy($this->removeButton->create($this));
+		if ($this->form !== null && $this->resolver->isRemoveAction() && $this->totalCopies >= $this->minCopies && !$this->resolver->reachedMinLimit()) {
+			/** @var RemoveButton $removeButton */
+			$removeButton = $this->removeButton;
+			$this->form->setSubmittedBy($removeButton->create($this));
 
 			$this->resetFormEvents();
 
@@ -342,7 +349,7 @@ class Multiplier extends Container
 	private function detachRemoveButton(Container $container) : void
 	{
 		$button = $container->getComponent(self::SUBMIT_REMOVE_NAME);
-		if ($this->getCurrentGroup()) {
+		if ($this->getCurrentGroup() !== null) {
 			$this->getCurrentGroup()->remove($button);
 		}
 
@@ -360,12 +367,12 @@ class Multiplier extends Container
 
 	protected function isFormSubmitted() : bool
 	{
-		return $this->getForm()->isAnchored() && $this->getForm()->isSubmitted();
+		return $this->getForm() !== null && $this->getForm()->isAnchored() && $this->getForm()->isSubmitted();
 	}
 
 	protected function loadHttpData() : void
 	{
-		if ($this->isFormSubmitted()) {
+		if ($this->form !== null && $this->isFormSubmitted()) {
 			$httpData = Arrays::get($this->form->getHttpData(), $this->getHtmlName(), []);
 			$this->resolver = new ComponentResolver($httpData, $this->maxCopies, $this->minCopies);
 		}
@@ -391,7 +398,7 @@ class Multiplier extends Container
 	 */
 	protected function getHtmlName() : array
 	{
-		return explode('-', $this->lookupPath(Form::class));
+		return explode('-', $this->lookupPath(Form::class) ?? '');
 	}
 
 	protected function createContainer() : Container
@@ -440,9 +447,10 @@ class Multiplier extends Container
 
 	protected function removeComponentProperly(IComponent $component) : void
 	{
-		if ($this->getCurrentGroup()) {
+		if ($this->getCurrentGroup() !== null && $component instanceof Control) {
 			$this->getCurrentGroup()->remove($component);
 		}
+
 		$this->removeComponent($component);
 	}
 
@@ -451,27 +459,35 @@ class Multiplier extends Container
 	 */
 	public function resetFormEvents() : void
 	{
+		if ($this->form === null) {
+			return;
+		}
+
 		$this->form->onSuccess = $this->form->onError = $this->form->onSubmit = [];
 	}
 
 	/**
-	 * @param string|null $returnType
+	 * @param string|object|null $returnType
+	 * @param  Control[]|null  $controls
 	 * @return object|mixed[]
 	 * @phpcsSuppress SlevomatCodingStandard.TypeHints.TypeHintDeclaration.MissingParameterTypeHint
 	 */
-	public function getValues($returnType = null)
+	public function getValues($returnType = null, ?array $controls = null)
 	{
 		if (!$this->resetKeys) {
-			return parent::getValues($returnType);
+			return parent::getValues($returnType, $controls);
 		}
 
-		$values = array_values(parent::getValues('array'));
+		/** @var mixed[] $values */
+		$values = parent::getValues('array', $controls);
+		$values = array_values($values);
 
-		return $returnType === true || $returnType === 'array' ? $values : ArrayHash::from($values);
+		$returnType = $returnType === true ? 'array' : $returnType; // @phpstan-ignore-line nette backwards compatibility
+		return $returnType === 'array' ? $values : ArrayHash::from($values);
 	}
 
 	/**
-	 * @return Iterator|IControl[]
+	 * @return Iterator|Control[]
 	 */
 	public function getControls() : Iterator
 	{
@@ -481,13 +497,15 @@ class Multiplier extends Container
 	}
 
 	/**
-	 * @return Container[]|Iterator
+	 * @return Iterator<int|string,Container>
 	 */
 	public function getContainers() : Iterator
 	{
 		$this->createCopies();
 
-		return $this->getComponents(false, Container::class);
+		/** @var Iterator<int|string,Container> $containers */
+		$containers = $this->getComponents(false, Container::class);
+		return $containers;
 	}
 
 	/**
@@ -495,6 +513,12 @@ class Multiplier extends Container
 	 */
 	public function setValues($values, bool $erase = false) : self
 	{
+		if ($values instanceof Traversable) {
+			$values = iterator_to_array($values);
+		} else {
+			$values = (array) $values;
+		}
+
 		$this->values = $values;
 		$this->erase = $erase;
 
