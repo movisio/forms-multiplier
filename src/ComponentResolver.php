@@ -48,7 +48,7 @@ final class ComponentResolver
 				$this->createAction = true;
 				$num = substr($index, 18);
 				if ($num) {
-					$this->createNum = (int)$num;
+					$this->createNum = (int) $num;
 				}
 
 				return;
