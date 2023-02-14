@@ -19,8 +19,8 @@ class LatteTest extends \Codeception\TestCase\Test
 	protected function _before()
 	{
 		$this->latte = $latte = new Engine();
-		MultiplierMacros::install($latte->getCompiler());
-		FormMacros::install($latte->getCompiler());
+		$this->latte->addExtension(new \Contributte\FormMultiplier\Latte\Extension\MultiplierExtension());
+		$this->latte->addExtension(new \Nette\Bridges\FormsLatte\FormsExtension());
 	}
 
 	public function testBtnCreate()
@@ -35,8 +35,8 @@ class LatteTest extends \Codeception\TestCase\Test
 		$presenter['m'] = $form;
 
 		$string = $this->latte->renderToString(__DIR__ . '/templates/macros.latte', ['form' => $form]);
-		$this->assertRegExp('#name="m\[multiplier_creator]"#', $string);
-		$this->assertRegExp('#name="m\[multiplier_creator2]"#', $string);
+		$this->assertMatchesRegularExpression('#name="m\[multiplier_creator]"#', $string);
+		$this->assertMatchesRegularExpression('#name="m\[multiplier_creator2]"#', $string);
 	}
 
 }
