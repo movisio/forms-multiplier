@@ -1,19 +1,22 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<ruleset name="Contributte">
-    <!-- Contributte Coding Standard -->
-    <rule ref="./vendor/ninjify/coding-standard/contributte.xml">
-        <exclude name="SlevomatCodingStandard.Operators.DisallowIncrementAndDecrementOperators.DisallowedPostDecrementOperator"/>
-    </rule>
+<ruleset name="Contributte" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="vendor/squizlabs/php_codesniffer/phpcs.xsd">
+	<!-- Rulesets -->
+	<rule ref="./vendor/contributte/qa/ruleset-8.2.xml">
+		<exclude name="SlevomatCodingStandard.PHP.DisallowReference.DisallowedAssigningByReference"/>
+		<exclude name="SlevomatCodingStandard.PHP.DisallowReference.DisallowedReturningReference"/>
+		<exclude name="SlevomatCodingStandard.PHP.DisallowReference.DisallowedInheritingVariableByReference"/>
+	</rule>
 
-    <!-- Specific rules -->
-    <rule ref="SlevomatCodingStandard.Files.TypeNameMatchesFileName">
-        <properties>
-            <property name="rootNamespaces" type="array" value="
-                src=>Contributte\FormMultiplier
-            "/>
-        </properties>
-    </rule>
+	<!-- Rules -->
+	<rule ref="SlevomatCodingStandard.Files.TypeNameMatchesFileName">
+		<properties>
+			<property name="rootNamespaces" type="array">
+				<element key="src" value="Contributte\FormMultiplier"/>
+				<element key="tests" value="Tests"/>
+			</property>
+		</properties>
+	</rule>
 
-    <!-- Exclude folders -->
-    <exclude-pattern>/tests/</exclude-pattern>
+	<!-- Excludes -->
+	<exclude-pattern>/tests/tmp</exclude-pattern>
 </ruleset>

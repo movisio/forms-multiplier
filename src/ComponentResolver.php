@@ -2,49 +2,45 @@
 
 namespace Contributte\FormMultiplier;
 
-use Nette\Utils\Strings;
-
 final class ComponentResolver
 {
 
-	/** @var string|int|null */
-	private $removeId;
+	private string|int|null $removeId = null;
 
-	/** @var bool */
-	private $removeAction = false;
+	private bool $removeAction = false;
 
-	/** @var bool */
-	private $createAction = false;
+	private bool $createAction = false;
 
-	/** @var int */
-	private $createNum = 1;
+	private int $createNum = 1;
 
 	/** @var mixed[] */
-	private $httpData = [];
+	private array $httpData = [];
 
-	/** @var int|null */
-	private $maxCopies;
+	private ?int $maxCopies = null;
 
 	/** @var mixed[] */
-	private $purgedHttpData;
+	private ?array $purgedHttpData = null;
 
-	/** @var int */
-	private $minCopies;
+	/** @var mixed[] */
+	private array $defaults = [];
 
-	/** @var bool */
-	private $reached = false;
+	private int $minCopies;
+
+	private bool $reached = false;
 
 	/**
 	 * @param mixed[] $httpData
+	 * @param mixed[] $defaults
 	 */
-	public function __construct(array $httpData, ?int $maxCopies, int $minCopies)
+	public function __construct(array $httpData, array $defaults, ?int $maxCopies, int $minCopies)
 	{
 		$this->httpData = $httpData;
 		$this->maxCopies = $maxCopies;
+		$this->defaults = $defaults;
 		$this->minCopies = $minCopies;
 
 		foreach ($httpData as $index => $_) {
-			if (Strings::startsWith((string) $index, Multiplier::SUBMIT_CREATE_NAME)) {
+			if (str_starts_with((string) $index, Multiplier::SUBMIT_CREATE_NAME)) {
 				$this->createAction = true;
 				$num = substr($index, 18);
 				if ($num) {
@@ -75,7 +71,7 @@ final class ComponentResolver
 	 */
 	public function getDefaults(): array
 	{
-		return array_slice([], 0, $this->maxCopies, true);
+		return array_slice($this->defaults, 0, $this->maxCopies, true);
 	}
 
 	/**
@@ -126,10 +122,7 @@ final class ComponentResolver
 		return $this->removeAction;
 	}
 
-	/**
-	 * @return int|string|null
-	 */
-	public function getRemoveId()
+	public function getRemoveId(): int|string|null
 	{
 		return $this->removeId;
 	}

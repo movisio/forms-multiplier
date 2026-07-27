@@ -10,22 +10,15 @@ use Latte\Compiler\Nodes\Php\Scalar\StringNode;
 use Latte\Compiler\Nodes\StatementNode;
 use Latte\Compiler\PrintContext;
 use Latte\Compiler\Tag;
-use LogicException;
-use Nette\ComponentModel\IComponent;
-use Nette\Forms\Container;
-use Nette\Forms\SubmitterControl;
 
 final class MultiplierAddNode extends StatementNode
 {
 
-	/** @var ExpressionNode */
-	public $name;
+	public ExpressionNode $name;
 
-	/** @var ArrayNode */
-	public $attributes;
+	public ArrayNode $attributes;
 
-	/** @var ExpressionNode */
-	public $part;
+	public ExpressionNode $part;
 
 	public static function create(Tag $tag): self
 	{
@@ -42,9 +35,16 @@ final class MultiplierAddNode extends StatementNode
 			$node->part = new StringNode('1');
 		}
 
+		$tag->parser->stream->tryConsume(',');
+
 		$node->attributes = $tag->parser->parseArguments();
 
 		return $node;
+	}
+
+	public static function getCreateButton(Multiplier $multiplier, int|string $buttonId): ?Submitter
+	{
+		return $multiplier->getCreateButtons()[$buttonId] ?? null;
 	}
 
 	public function print(PrintContext $context): string
@@ -66,18 +66,11 @@ final class MultiplierAddNode extends StatementNode
 		);
 	}
 
-	/**
-	 * @param int|string $buttonId
-	 */
-	public static function getCreateButton(Multiplier $multiplier, $buttonId): ?Submitter
-	{
-		return $multiplier->getCreateButtons()[$buttonId] ?? null;
-	}
-
 	public function &getIterator(): \Generator
 	{
 		yield $this->name;
 		yield $this->attributes;
 		yield $this->part;
 	}
+
 }
